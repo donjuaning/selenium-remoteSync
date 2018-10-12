@@ -10,13 +10,13 @@ class syncRemote():
     def __init__(self, command_executor='http://127.0.0.1:4444/wd/hub',
                  desired_capabilities=None, browser_profile=None, proxy=None,
                  keep_alive=False, file_detector=None, options=None, browser_name=None):
-        self.create_driver(browser_name, options)
+        self.create_driver(browser_name, options, desired_capabilities)
         self.browser = webdriver.Remote(command_executor=command_executor, desired_capabilities=desired_capabilities,
                                         browser_profile=browser_profile, proxy=proxy, keep_alive=keep_alive,
                                         file_detector=file_detector, options=options)
         self.socket_thread()
 
-    def create_driver(self, browser_name, options):
+    def create_driver(self, browser_name, options, desired_capabilities):
         if browser_name == 'Chrome':
             driver_options = webdriver.ChromeOptions()
             for option in options.arguments:
@@ -26,7 +26,7 @@ class syncRemote():
                     driver_options.add_argument(option)
             for item in options.experimental_options:
                 driver_options.add_experimental_option(item, options.experimental_options[item])
-            self.driver = webdriver.Chrome(options=driver_options)
+            self.driver = webdriver.Chrome(options=driver_options, desired_capabilities=desired_capabilities)
 
         elif browser_name == 'FireFox':
             driver_options = webdriver.FirefoxOptions()
@@ -35,7 +35,7 @@ class syncRemote():
                     pass
                 else:
                     driver_options.add_argument(option)
-            self.driver = webdriver.Firefox(options=driver_options)
+            self.driver = webdriver.Firefox(options=driver_options, desired_capabilities=desired_capabilities)
 
         elif browser_name == 'Ie':
             driver_options = webdriver.IeOptions()
@@ -46,10 +46,13 @@ class syncRemote():
                     driver_options.add_argument(option)
             for item in options.additional_options:
                 driver_options.add_additional_option(item, options.additional_options[item])
-            self.driver = webdriver.Ie(options=options)
+            self.driver = webdriver.Ie(options=options, desired_capabilities=desired_capabilities)
 
         elif browser_name == 'Edge':
-            self.driver = webdriver.Edge()
+            self.driver = webdriver.Edge(capabilities=desired_capabilities)
+
+        elif browser_name == 'PhantomJS':
+            self.driver = webdriver.PhantomJS(desired_capabilities=desired_capabilities)
 
     def sync(self):
         html_content = self.browser.page_source
@@ -61,7 +64,6 @@ class syncRemote():
         cookies = self.browser.get_cookies()
         for cookie in cookies:
             self.driver.add_cookie(cookie)
-
 
     def socket_thread(self):
 
